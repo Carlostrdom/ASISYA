@@ -1,0 +1,217 @@
+<div class="page">
+  <!-- Cabecera -->
+  <div class="page__head">
+    <div>
+      <h1 class="page__title">Productos.</h1>
+      <p class="page__sub">Catálogo maestro. Gestiona el inventario completo, ajusta precios y actualiza disponibilidad en tiempo real.</p>
+    </div>
+    <div class="page__actions">
+      <button class="btn btn--accent" (click)="create()">
+        <svg width="13" height="13" viewBox="0 0 16 16" fill="none">
+          <path d="M8 2v12M2 8h12" stroke="currentColor" stroke-width="1.5" stroke-linecap="square"/>
+        </svg>
+        Nuevo producto
+      </button>
+    </div>
+  </div>
+
+  <!-- KPIs -->
+  <div class="kpis">
+    <div class="kpi">
+      <div class="kpi__label">Total artículos</div>
+      <div class="kpi__value">{{ paged.totalCount.toString().padStart(2, '0') }}</div>
+      <div class="kpi__delta">registros en la base de datos</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi__label">En venta</div>
+      <div class="kpi__value">{{ kpiActive }}</div>
+      <div class="kpi__delta">{{ paged.totalCount > 0 ? ((kpiActive / products.length) * 100 | number:'1.0-0') : 0 }}% de esta página</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi__label">Bajo stock</div>
+      <div class="kpi__value">{{ kpiLow.toString().padStart(2, '0') }}</div>
+      <div class="kpi__delta down" *ngIf="kpiLow > 0">requiere reposición</div>
+      <div class="kpi__delta" *ngIf="kpiLow === 0">sin alertas</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi__label">Valor inventario</div>
+      <div class="kpi__value" style="font-size:24px">{{ fmtPrice(kpiValue) }}</div>
+      <div class="kpi__delta">precio × stock · esta página</div>
+    </div>
+  </div>
+
+  <!-- Toolbar -->
+  <div class="toolbar">
+    <div class="search">
+      <svg width="14" height="14" viewBox="0 0 16 16" fill="none" style="opacity:0.5;flex-shrink:0">
+        <circle cx="6.5" cy="6.5" r="4.5" stroke="currentColor" stroke-width="1.3"/>
+        <path d="M10 10l3.5 3.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="square"/>
+      </svg>
+      <input placeholder="Buscar por nombre…" [(ngModel)]="search" (keyup.enter)="onSearch()"/>
+      <span class="kbd">↵</span>
+    </div>
+
+    <button class="chip" [class.active]="categoryId === undefined" (click)="onCategoryFilter(undefined)">Todo</button>
+    <button *ngFor="let c of categories" class="chip"
+      [class.active]="categoryId === c.categoryID"
+      (click)="onCategoryFilter(c.categoryID)">{{ c.categoryName }}</button>
+
+    <div style="flex:1"></div>
+
+    <button class="chip" [class.active]="viewMode === 'table'" (click)="viewMode = 'table'" title="Tabla">
+      <svg width="11" height="11" viewBox="0 0 14 14" fill="none">
+        <path d="M1 3h12M1 7h12M1 11h12" stroke="currentColor" stroke-width="1.2" stroke-linecap="square"/>
+      </svg>
+    </button>
+    <button class="chip" [class.active]="viewMode === 'grid'" (click)="viewMode = 'grid'" title="Cuadrícula">
+      <svg width="11" height="11" viewBox="0 0 14 14" fill="none">
+        <rect x="1" y="1" width="5" height="5" stroke="currentColor" stroke-width="1.2"/>
+        <rect x="8" y="1" width="5" height="5" stroke="currentColor" stroke-width="1.2"/>
+        <rect x="1" y="8" width="5" height="5" stroke="currentColor" stroke-width="1.2"/>
+        <rect x="8" y="8" width="5" height="5" stroke="currentColor" stroke-width="1.2"/>
+      </svg>
+    </button>
+  </div>
+
+  <!-- Loading -->
+  <div *ngIf="loading" style="padding:64px;text-align:center;color:var(--muted);font-family:var(--mono);font-size:11px;letter-spacing:0.18em;text-transform:uppercase">
+    Cargando…
+  </div>
+
+  <!-- Vacío -->
+  <div *ngIf="!loading && products.length === 0" class="empty">
+    <h3>Sin resultados.</h3>
+    <p>No encontramos productos que coincidan con tu búsqueda.</p>
+    <button class="btn btn--ghost btn--sm" (click)="search=''; categoryId=undefined; onSearch()">Limpiar filtros</button>
+  </div>
+
+  <!-- Vista tabla -->
+  <div *ngIf="!loading && products.length > 0 && viewMode === 'table'" class="table-wrap">
+    <table class="table">
+      <thead>
+        <tr>
+          <th [class.sorted]="sortKey === 'productName'" (click)="toggleSort('productName')" style="width:40%">
+            Producto <span class="arr">{{ sortKey === 'productName' ? (sortDir > 0 ? '↑' : '↓') : '↕' }}</span>
+          </th>
+          <th [class.sorted]="sortKey === 'categoryName'" (click)="toggleSort('categoryName')">
+            Categoría <span class="arr">{{ sortKey === 'categoryName' ? (sortDir > 0 ? '↑' : '↓') : '↕' }}</span>
+          </th>
+          <th [class.sorted]="sortKey === 'unitPrice'" (click)="toggleSort('unitPrice')" style="text-align:right">
+            Precio <span class="arr">{{ sortKey === 'unitPrice' ? (sortDir > 0 ? '↑' : '↓') : '↕' }}</span>
+          </th>
+          <th [class.sorted]="sortKey === 'unitsInStock'" (click)="toggleSort('unitsInStock')" style="text-align:right">
+            Stock <span class="arr">{{ sortKey === 'unitsInStock' ? (sortDir > 0 ? '↑' : '↓') : '↕' }}</span>
+          </th>
+          <th>Estado</th>
+          <th style="text-align:right">Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let p of sortedProducts">
+          <td>
+            <div class="cell-product">
+              <div class="thumb" [attr.style]="getThumbStyle(p.productID)">
+                <span>{{ getInitials(p.productName) }}</span>
+              </div>
+              <div class="meta">
+                <span class="name">{{ p.productName }}</span>
+                <span class="sku">{{ getSku(p.productID) }}</span>
+              </div>
+            </div>
+          </td>
+          <td>{{ p.categoryName || '—' }}</td>
+          <td class="cell-price" style="text-align:right">{{ fmtPrice(p.unitPrice) }}</td>
+          <td class="cell-stock" style="text-align:right">{{ p.unitsInStock.toString().padStart(3, '0') }}</td>
+          <td>
+            <span class="badge" [ngClass]="getStatus(p).key">{{ getStatus(p).label }}</span>
+          </td>
+          <td>
+            <div class="row-actions">
+              <button class="icon-btn" title="Editar" (click)="edit(p.productID)">
+                <svg width="13" height="13" viewBox="0 0 16 16" fill="none">
+                  <path d="M11.5 2.5l2 2L5 13H3v-2L11.5 2.5z" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/>
+                </svg>
+              </button>
+              <button class="icon-btn danger" title="Eliminar" (click)="openDeleteModal(p)">
+                <svg width="13" height="13" viewBox="0 0 16 16" fill="none">
+                  <path d="M2 4h12M6 4V2h4v2M5 4v9h6V4" stroke="currentColor" stroke-width="1.2" stroke-linecap="square"/>
+                </svg>
+              </button>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- Paginación -->
+    <div class="pagination">
+      <div>Página <span style="color:var(--ink)">{{ paged.page }}</span> de {{ paged.totalPages }} · {{ paged.totalCount }} productos</div>
+      <div class="pagination__pages">
+        <button class="pagination__pg" (click)="prevPage()" [disabled]="paged.page === 1">‹</button>
+        <button *ngFor="let p of pages" class="pagination__pg"
+          [class.active]="p === paged.page" (click)="loadProducts(p)">{{ p }}</button>
+        <button class="pagination__pg" (click)="nextPage()" [disabled]="paged.page === paged.totalPages">›</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Vista grid -->
+  <div *ngIf="!loading && products.length > 0 && viewMode === 'grid'" class="cards">
+    <div *ngFor="let p of sortedProducts" class="card" (click)="edit(p.productID)">
+      <div class="card__thumb" [attr.style]="getThumbStyle(p.productID)">
+        <span>{{ getInitials(p.productName) }}</span>
+      </div>
+      <div class="card__name">{{ p.productName }}</div>
+      <div class="card__row">
+        <span class="card__price">{{ fmtPrice(p.unitPrice) }}</span>
+        <span class="badge" [ngClass]="getStatus(p).key">{{ getStatus(p).label }}</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Panel de carga masiva -->
+  <div class="bulk-panel">
+    <div class="bulk-panel__head" (click)="showBulk = !showBulk">
+      <span>Carga masiva de productos</span>
+      <span>{{ showBulk ? '↑' : '↓' }}</span>
+    </div>
+    <div class="bulk-panel__body" *ngIf="showBulk">
+      <div class="field field--box" style="min-width:160px">
+        <label class="field__label"><span>Cantidad</span></label>
+        <input class="field__input" type="number" [(ngModel)]="bulkCount" min="1" max="500000"/>
+      </div>
+      <div class="field field--box" style="min-width:180px">
+        <label class="field__label"><span>Categoría</span></label>
+        <select class="field__input" [(ngModel)]="bulkCategoryId">
+          <option *ngFor="let c of categories" [ngValue]="c.categoryID">{{ c.categoryName }}</option>
+        </select>
+      </div>
+      <button class="btn btn--sm" (click)="bulkCreate()" [disabled]="bulkLoading">
+        <span *ngIf="bulkLoading" class="spinner"></span>
+        {{ bulkLoading ? 'Generando…' : 'Generar productos' }}
+      </button>
+      <span *ngIf="bulkMessage" style="font-family:var(--mono);font-size:11px;color:var(--ok)">{{ bulkMessage }}</span>
+    </div>
+  </div>
+</div>
+
+<!-- Modal de eliminación -->
+<div class="modal-bg" *ngIf="confirmDelete" (click)="!deleteLoading && (confirmDelete = null)">
+  <div class="modal" (click)="$event.stopPropagation()">
+    <div class="modal__head">
+      <h3>Eliminar producto.</h3>
+    </div>
+    <div class="modal__body">
+      Esta acción no puede deshacerse. El producto <strong>{{ confirmDelete.productName }}</strong>
+      ({{ getSku(confirmDelete.productID) }}) será removido permanentemente del catálogo.
+      <div class="modal__confirm">DELETE /api/product/{{ confirmDelete.productID }}</div>
+    </div>
+    <div class="modal__foot">
+      <button class="btn btn--ghost btn--sm" (click)="confirmDelete = null" [disabled]="deleteLoading">Cancelar</button>
+      <button class="btn btn--danger btn--sm" (click)="doDelete()" [disabled]="deleteLoading">
+        <span *ngIf="deleteLoading" class="spinner"></span>
+        {{ deleteLoading ? 'Eliminando…' : 'Confirmar eliminación' }}
+      </button>
+    </div>
+  </div>
+</div>

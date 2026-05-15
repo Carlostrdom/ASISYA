@@ -1,0 +1,75 @@
+<div class="shell">
+  <aside class="sidebar">
+    <div class="sidebar__brand">
+      <span class="dot"></span>
+      <span>ASISYA</span>
+    </div>
+
+    <div class="sidebar__section">Operaciones</div>
+
+    <a class="sidebar__item" [class.active]="isProductsActive()" [routerLink]="['/products']">
+      <svg class="ico" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect x="1" y="1" width="6" height="6" stroke="currentColor" stroke-width="1.2"/>
+        <rect x="9" y="1" width="6" height="6" stroke="currentColor" stroke-width="1.2"/>
+        <rect x="1" y="9" width="6" height="6" stroke="currentColor" stroke-width="1.2"/>
+        <rect x="9" y="9" width="6" height="6" stroke="currentColor" stroke-width="1.2"/>
+      </svg>
+      <span>Productos</span>
+    </a>
+
+    <a class="sidebar__item" style="opacity:0.35;cursor:not-allowed">
+      <svg class="ico" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M2 4h12M2 8h12M2 12h8" stroke="currentColor" stroke-width="1.2" stroke-linecap="square"/>
+      </svg>
+      <span>Pedidos</span>
+    </a>
+
+    <a class="sidebar__item" style="opacity:0.35;cursor:not-allowed">
+      <svg class="ico" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="8" cy="5" r="3" stroke="currentColor" stroke-width="1.2"/>
+        <path d="M2 14c0-3.314 2.686-5 6-5s6 1.686 6 5" stroke="currentColor" stroke-width="1.2"/>
+      </svg>
+      <span>Clientes</span>
+    </a>
+
+    <div class="sidebar__section">Sistema</div>
+
+    <a class="sidebar__item" style="opacity:0.35;cursor:not-allowed">
+      <svg class="ico" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M8 1l1.5 3.5L13 5l-2.5 2.5.5 3.5L8 9.5 5 11l.5-3.5L3 5l3.5-.5L8 1z" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/>
+      </svg>
+      <span>Ajustes</span>
+    </a>
+
+    <div class="sidebar__spacer"></div>
+
+    <div class="sidebar__user">
+      <div class="sidebar__user-row">
+        <div class="sidebar__avatar">AD</div>
+        <div class="sidebar__user-meta">
+          <div class="name">Admin</div>
+          <div class="role">Administrador</div>
+        </div>
+      </div>
+      <button class="sidebar__logout" (click)="logout()">Cerrar sesión</button>
+    </div>
+  </aside>
+
+  <main class="main">
+    <header class="topbar">
+      <div class="crumbs">
+        <ng-container *ngFor="let c of crumbs; let i = index; let last = last">
+          <span [class.here]="last">{{ c }}</span>
+          <span *ngIf="!last" class="sep">/</span>
+        </ng-container>
+      </div>
+      <div class="topbar__right">
+        <div class="topbar__token" title="JWT en localStorage">
+          <span class="dot"></span>
+          <span>JWT · {{ tokenSnippet }}</span>
+        </div>
+      </div>
+    </header>
+    <router-outlet></router-outlet>
+  </main>
+</div>

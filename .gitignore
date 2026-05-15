@@ -1,0 +1,31 @@
+# .NET
+bin/
+obj/
+*.user
+*.suo
+.vs/
+*.log
+
+# NuGet
+*.nupkg
+packages/
+
+# Publish output
+publish/
+out/
+
+# Secrets (nunca subir)
+appsettings.*.local.json
+secrets.json
+
+# Node / Angular
+node_modules/
+dist/
+.angular/
+
+# Claude Code
+.claude/
+
+# OS
+.DS_Store
+Thumbs.db

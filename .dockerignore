@@ -1,0 +1,10 @@
+**/bin
+**/obj
+**/.vs
+**/.git
+**/node_modules
+**/dist
+**/*.user
+**/*.log
+asisya-frontend/node_modules
+asisya-frontend/dist
