@@ -16,6 +16,7 @@ out/
 
 # Secrets (nunca subir)
 appsettings.*.local.json
+appsettings.Development.json
 secrets.json
 
 # Node / Angular
