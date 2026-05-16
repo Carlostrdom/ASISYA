@@ -1,5 +1,7 @@
-import { Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit, OnDestroy } from '@angular/core';
 import { Router } from '@angular/router';
+import { Subject, Subscription } from 'rxjs';
+import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import { ProductService, ProductDto, PagedResult } from '../../../core/services/product.service';
 import { CategoryService, CategoryDto } from '../../../core/services/category.service';
 import { AuthService } from '../../../core/services/auth.service';
@@ -9,7 +11,7 @@ import { AuthService } from '../../../core/services/auth.service';
   standalone: false,
   templateUrl: './product-list.component.html'
 })
-export class ProductListComponent implements OnInit {
+export class ProductListComponent implements OnInit, OnDestroy {
   products: ProductDto[] = [];
   categories: CategoryDto[] = [];
   paged: Omit<PagedResult<ProductDto>, 'items'> = { totalCount: 0, page: 1, pageSize: 20, totalPages: 0 };
@@ -21,6 +23,9 @@ export class ProductListComponent implements OnInit {
   sortKey: string = 'productName';
   sortDir = 1;
   viewMode: 'table' | 'grid' = 'table';
+
+  private searchSubject = new Subject<string>();
+  private searchSub!: Subscription;
 
   confirmDelete: ProductDto | null = null;
   deleteLoading = false;
@@ -35,18 +40,29 @@ export class ProductListComponent implements OnInit {
     private productService: ProductService,
     private categoryService: CategoryService,
     private authService: AuthService,
-    private router: Router
+    private router: Router,
+    private cdr: ChangeDetectorRef
   ) {}
 
   ngOnInit(): void {
+    this.searchSub = this.searchSubject.pipe(
+      debounceTime(400),
+      distinctUntilChanged()
+    ).subscribe(() => this.loadProducts(1));
+
     this.loadCategories();
     this.loadProducts();
+  }
+
+  ngOnDestroy(): void {
+    this.searchSub?.unsubscribe();
   }
 
   loadCategories(): void {
     this.categoryService.getCategories().subscribe(cats => {
       this.categories = cats;
       if (cats.length > 0) this.bulkCategoryId = cats[0].categoryID;
+      this.cdr.detectChanges();
     });
   }
 
@@ -57,12 +73,13 @@ export class ProductListComponent implements OnInit {
         this.products = res.items;
         this.paged = { totalCount: res.totalCount, page: res.page, pageSize: res.pageSize, totalPages: res.totalPages };
         this.loading = false;
+        this.cdr.detectChanges();
       },
-      error: () => this.loading = false
+      error: () => { this.loading = false; this.cdr.detectChanges(); }
     });
   }
 
-  onSearch(): void { this.loadProducts(1); }
+  onSearch(): void { this.searchSubject.next(this.search); }
   onCategoryFilter(catId: number | undefined): void { this.categoryId = catId; this.loadProducts(1); }
   prevPage(): void { if (this.paged.page > 1) this.loadProducts(this.paged.page - 1); }
   nextPage(): void { if (this.paged.page < this.paged.totalPages) this.loadProducts(this.paged.page + 1); }
@@ -80,9 +97,10 @@ export class ProductListComponent implements OnInit {
       next: () => {
         this.deleteLoading = false;
         this.confirmDelete = null;
+        this.cdr.detectChanges();
         this.loadProducts(this.paged.page);
       },
-      error: () => { this.deleteLoading = false; }
+      error: () => { this.deleteLoading = false; this.cdr.detectChanges(); }
     });
   }
 

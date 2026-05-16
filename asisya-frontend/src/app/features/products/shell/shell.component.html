@@ -5,10 +5,10 @@
       <span>ASISYA</span>
     </div>
 
-    <div class="sidebar__section">Operaciones</div>
+    <div class="sidebar__section">Catálogo</div>
 
-    <a class="sidebar__item" [class.active]="isProductsActive()" [routerLink]="['/products']">
-      <svg class="ico" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <a class="sidebar__item" [class.active]="isActive('/products') && !isActive('/products/categories')" [routerLink]="['/products']">
+      <svg class="ico" viewBox="0 0 16 16" fill="none">
         <rect x="1" y="1" width="6" height="6" stroke="currentColor" stroke-width="1.2"/>
         <rect x="9" y="1" width="6" height="6" stroke="currentColor" stroke-width="1.2"/>
         <rect x="1" y="9" width="6" height="6" stroke="currentColor" stroke-width="1.2"/>
@@ -17,28 +17,11 @@
       <span>Productos</span>
     </a>
 
-    <a class="sidebar__item" style="opacity:0.35;cursor:not-allowed">
-      <svg class="ico" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M2 4h12M2 8h12M2 12h8" stroke="currentColor" stroke-width="1.2" stroke-linecap="square"/>
+    <a class="sidebar__item" [class.active]="isActive('/products/categories')" [routerLink]="['/products/categories']">
+      <svg class="ico" viewBox="0 0 16 16" fill="none">
+        <path d="M2 4h12M2 8h10M2 12h6" stroke="currentColor" stroke-width="1.2" stroke-linecap="square"/>
       </svg>
-      <span>Pedidos</span>
-    </a>
-
-    <a class="sidebar__item" style="opacity:0.35;cursor:not-allowed">
-      <svg class="ico" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <circle cx="8" cy="5" r="3" stroke="currentColor" stroke-width="1.2"/>
-        <path d="M2 14c0-3.314 2.686-5 6-5s6 1.686 6 5" stroke="currentColor" stroke-width="1.2"/>
-      </svg>
-      <span>Clientes</span>
-    </a>
-
-    <div class="sidebar__section">Sistema</div>
-
-    <a class="sidebar__item" style="opacity:0.35;cursor:not-allowed">
-      <svg class="ico" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M8 1l1.5 3.5L13 5l-2.5 2.5.5 3.5L8 9.5 5 11l.5-3.5L3 5l3.5-.5L8 1z" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/>
-      </svg>
-      <span>Ajustes</span>
+      <span>Categorías</span>
     </a>
 
     <div class="sidebar__spacer"></div>

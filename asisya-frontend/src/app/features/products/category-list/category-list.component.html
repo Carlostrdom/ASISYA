@@ -1,0 +1,50 @@
+<div class="page">
+  <div class="page__head">
+    <div>
+      <h1 class="page__title">Categorías.</h1>
+      <p class="page__sub">Gestiona las categorías del catálogo. Endpoint: <code>GET /api/category</code></p>
+    </div>
+    <div class="page__actions">
+      <button class="btn btn--accent" (click)="create()">
+        <svg width="13" height="13" viewBox="0 0 16 16" fill="none">
+          <path d="M8 2v12M2 8h12" stroke="currentColor" stroke-width="1.5" stroke-linecap="square"/>
+        </svg>
+        Nueva categoría
+      </button>
+    </div>
+  </div>
+
+  <div *ngIf="loading" style="padding:64px;text-align:center;color:var(--muted);font-family:var(--mono);font-size:11px;letter-spacing:0.18em;text-transform:uppercase">
+    Cargando…
+  </div>
+
+  <div *ngIf="!loading && categories.length === 0" class="empty">
+    <h3>Sin categorías.</h3>
+    <p>Crea la primera categoría para empezar.</p>
+    <button class="btn btn--ghost btn--sm" (click)="create()">Nueva categoría</button>
+  </div>
+
+  <div *ngIf="!loading && categories.length > 0" class="table-wrap">
+    <table class="table">
+      <thead>
+        <tr>
+          <th style="width:60px">ID</th>
+          <th>Nombre</th>
+          <th>Descripción</th>
+          <th style="text-align:right">Productos</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let c of categories">
+          <td><span style="font-family:var(--mono);color:var(--muted);font-size:11px">{{ c.categoryID }}</span></td>
+          <td><strong>{{ c.categoryName }}</strong></td>
+          <td style="color:var(--muted)">{{ c.description || '—' }}</td>
+          <td style="text-align:right;font-family:var(--mono);font-size:12px">—</td>
+        </tr>
+      </tbody>
+    </table>
+    <div class="pagination">
+      <div>{{ categories.length }} categorías</div>
+    </div>
+  </div>
+</div>

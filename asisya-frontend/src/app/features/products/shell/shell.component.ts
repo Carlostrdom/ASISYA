@@ -17,13 +17,16 @@ export class ShellComponent {
 
   get crumbs(): string[] {
     const url = this.router.url;
-    if (url.includes('/new')) return ['Catálogo', 'Productos', 'Nuevo'];
-    if (url.includes('/edit/')) return ['Catálogo', 'Productos', 'Editar'];
-    return ['Catálogo', 'Productos'];
+    if (url.startsWith('/products/categories/new')) return ['Catálogo', 'Categorías', 'Nueva'];
+    if (url.startsWith('/products/categories'))     return ['Catálogo', 'Categorías'];
+    if (url.startsWith('/products/new'))            return ['Catálogo', 'Productos', 'Nuevo'];
+    if (url.startsWith('/products/edit'))           return ['Catálogo', 'Productos', 'Editar'];
+    if (url.startsWith('/products'))                return ['Catálogo', 'Productos'];
+    return ['Catálogo'];
   }
 
-  isProductsActive(): boolean {
-    return this.router.url.startsWith('/products');
+  isActive(path: string): boolean {
+    return this.router.url.startsWith(path);
   }
 
   logout(): void { this.authService.logout(); }

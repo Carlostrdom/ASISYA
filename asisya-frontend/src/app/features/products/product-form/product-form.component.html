@@ -25,6 +25,9 @@
   <div *ngIf="error" class="login__alert" style="margin-bottom:20px">
     <span>{{ error }}</span>
   </div>
+  <div *ngIf="success" class="login__alert" style="margin-bottom:20px;background:var(--ok,#2d6a4f);color:#fff;border-color:var(--ok,#2d6a4f)">
+    <span>{{ success }}</span>
+  </div>
 
   <form class="form-page" [formGroup]="form" (ngSubmit)="onSubmit()" novalidate>
 

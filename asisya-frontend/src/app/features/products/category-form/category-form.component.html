@@ -1,0 +1,107 @@
+<div class="page">
+  <div class="page__head">
+    <div>
+      <h1 class="page__title">Nueva categoría.</h1>
+      <p class="page__sub">Completa los campos. Se enviará vía <code>POST /api/category</code></p>
+    </div>
+    <div class="page__actions">
+      <button class="btn btn--ghost btn--sm" (click)="cancel()">
+        <svg width="11" height="11" viewBox="0 0 16 16" fill="none">
+          <path d="M13 8H3M7 4l-4 4 4 4" stroke="currentColor" stroke-width="1.3" stroke-linecap="square"/>
+        </svg>
+        Cancelar
+      </button>
+    </div>
+  </div>
+
+  <div *ngIf="error" class="login__alert" style="margin-bottom:20px">
+    <span>{{ error }}</span>
+  </div>
+  <div *ngIf="success" class="login__alert" style="margin-bottom:20px;background:var(--ok,#2d6a4f);color:#fff;border-color:var(--ok,#2d6a4f)">
+    <span>{{ success }}</span>
+  </div>
+
+  <form class="form-page" [formGroup]="form" (ngSubmit)="onSubmit()" novalidate>
+
+    <div class="form-card">
+      <div class="form-card__head">
+        <h3>Detalles de la categoría</h3>
+        <span class="mono">FormGroup · categoryForm</span>
+      </div>
+
+      <div class="form-card__body">
+        <div class="form-grid">
+
+          <div class="field field--box full"
+            [class.field--error]="categoryName.invalid && (categoryName.touched || submitted)">
+            <label class="field__label">
+              <span>Nombre de la categoría</span>
+              <span class="req">●</span>
+            </label>
+            <input class="field__input" type="text" formControlName="categoryName"
+              placeholder="Ej. Bebidas"/>
+            <div class="field__hint" [class.error]="categoryName.invalid && (categoryName.touched || submitted)">
+              <ng-container *ngIf="categoryName.invalid && (categoryName.touched || submitted)">
+                <span *ngIf="categoryName.errors?.['required']">Campo requerido</span>
+                <span *ngIf="categoryName.errors?.['maxlength']">Máximo 100 caracteres</span>
+              </ng-container>
+            </div>
+          </div>
+
+          <div class="field field--box full">
+            <label class="field__label"><span>Descripción</span></label>
+            <input class="field__input" type="text" formControlName="description"
+              placeholder="Descripción opcional"/>
+            <div class="field__hint"></div>
+          </div>
+
+        </div>
+
+        <div class="form-actions">
+          <div class="left-group">
+            <button type="button" class="btn btn--ghost btn--sm" (click)="cancel()">Cancelar</button>
+          </div>
+          <button type="submit" class="btn btn--accent btn--sm" [disabled]="loading">
+            <span *ngIf="loading" class="spinner"></span>
+            {{ loading ? 'Guardando…' : 'Crear categoría' }}
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <aside class="inspector">
+      <div class="inspector__block">
+        <h4>Estado del formulario</h4>
+        <div class="form-state">
+          <span class="k">valid</span>
+          <span [class.v-true]="form.valid" [class.v-false]="!form.valid" class="v">{{ form.valid }}</span>
+          <span class="k">dirty</span>
+          <span [class.v-true]="form.dirty" [class.v-false]="!form.dirty" class="v">{{ form.dirty }}</span>
+          <span class="k">submitted</span>
+          <span [class.v-true]="submitted" [class.v-false]="!submitted" class="v">{{ submitted }}</span>
+        </div>
+      </div>
+
+      <div class="inspector__block">
+        <h4>Validators</h4>
+        <div class="validator-list">
+          <div class="v" [class.ok]="!!form.value.categoryName" [class.bad]="!form.value.categoryName">
+            <span class="mark">{{ !!form.value.categoryName ? '✓' : '✗' }}</span>
+            <span>categoryName.required</span>
+          </div>
+          <div class="v" [class.ok]="!form.value.categoryName || form.value.categoryName.length <= 100"
+               [class.bad]="form.value.categoryName && form.value.categoryName.length > 100">
+            <span class="mark">{{ !form.value.categoryName || form.value.categoryName.length <= 100 ? '✓' : '✗' }}</span>
+            <span>categoryName.maxLength(100)</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="inspector__block">
+        <h4>Payload</h4>
+        <pre class="json-preview">{{ form.value | json }}</pre>
+      </div>
+    </aside>
+
+  </form>
+</div>

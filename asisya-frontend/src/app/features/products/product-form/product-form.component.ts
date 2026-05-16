@@ -1,6 +1,8 @@
-import { Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
+import { Observable } from 'rxjs';
+import { finalize } from 'rxjs/operators';
 import { ProductService } from '../../../core/services/product.service';
 import { CategoryService, CategoryDto } from '../../../core/services/category.service';
 
@@ -16,6 +18,7 @@ export class ProductFormComponent implements OnInit {
   productId: number | null = null;
   loading = false;
   error = '';
+  success = '';
   submitted = false;
 
   constructor(
@@ -23,7 +26,8 @@ export class ProductFormComponent implements OnInit {
     private productService: ProductService,
     private categoryService: CategoryService,
     private route: ActivatedRoute,
-    private router: Router
+    private router: Router,
+    private cdr: ChangeDetectorRef
   ) {
     this.form = this.fb.group({
       productName: ['', [Validators.required, Validators.maxLength(100)]],
@@ -39,7 +43,7 @@ export class ProductFormComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.categoryService.getCategories().subscribe(cats => this.categories = cats);
+    this.categoryService.getCategories().subscribe(cats => { this.categories = cats; this.cdr.detectChanges(); });
     const id = this.route.snapshot.paramMap.get('id');
     if (id) {
       this.isEdit = true;
@@ -56,6 +60,7 @@ export class ProductFormComponent implements OnInit {
           reorderLevel: p.reorderLevel,
           discontinued: p.discontinued
         });
+        this.cdr.detectChanges();
       });
     }
   }
@@ -81,16 +86,24 @@ export class ProductFormComponent implements OnInit {
     if (this.form.invalid) { this.form.markAllAsTouched(); return; }
     this.loading = true;
     this.error = '';
+    this.success = '';
     const value = this.form.value;
 
-    const onSuccess = () => this.router.navigate(['/products']);
-    const onError = () => { this.error = 'Error al guardar el producto.'; this.loading = false; };
+    const request$: Observable<unknown> = this.isEdit
+      ? this.productService.updateProduct(this.productId!, value)
+      : this.productService.createProduct(value);
 
-    if (this.isEdit) {
-      this.productService.updateProduct(this.productId!, value).subscribe({ next: onSuccess, error: onError });
-    } else {
-      this.productService.createProduct(value).subscribe({ next: onSuccess, error: onError });
-    }
+    request$.pipe(finalize(() => { this.loading = false; this.cdr.detectChanges(); })).subscribe({
+      next: () => {
+        this.success = this.isEdit ? 'Producto actualizado correctamente.' : 'Producto creado correctamente.';
+        this.cdr.detectChanges();
+        setTimeout(() => this.router.navigate(['/products']), 1200);
+      },
+      error: () => {
+        this.error = 'Error al guardar el producto. Verifica los datos e intenta de nuevo.';
+        this.cdr.detectChanges();
+      }
+    });
   }
 
   cancel(): void { this.router.navigate(['/products']); }

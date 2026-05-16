@@ -3,6 +3,8 @@ import { RouterModule, Routes } from '@angular/router';
 import { ShellComponent } from './shell/shell.component';
 import { ProductListComponent } from './product-list/product-list.component';
 import { ProductFormComponent } from './product-form/product-form.component';
+import { CategoryListComponent } from './category-list/category-list.component';
+import { CategoryFormComponent } from './category-form/category-form.component';
 
 const routes: Routes = [
   {
@@ -11,7 +13,9 @@ const routes: Routes = [
     children: [
       { path: '', component: ProductListComponent },
       { path: 'new', component: ProductFormComponent },
-      { path: 'edit/:id', component: ProductFormComponent }
+      { path: 'edit/:id', component: ProductFormComponent },
+      { path: 'categories', component: CategoryListComponent },
+      { path: 'categories/new', component: CategoryFormComponent }
     ]
   }
 ];
